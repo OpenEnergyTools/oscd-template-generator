@@ -1,7 +1,7 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import nodeResolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
 import typescript from '@rollup/plugin-typescript';
-// import { copy } from '@web/rollup-plugin-copy';
 import { importMetaAssets } from '@web/rollup-plugin-import-meta-assets';
 import { terser } from 'rollup-plugin-terser';
 import { generateSW } from 'rollup-plugin-workbox';

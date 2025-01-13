@@ -1,5 +1,6 @@
-import { cyrb64 } from '@openscd/open-scd-core';
-import type { TreeSelection } from '@openscd/oscd-tree-grid';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { cyrb64 } from '@openenergytools/open-scd-core';
+import type { TreeSelection } from '@openenergytools/tree-grid';
 
 function describeEnumType(element: Element): { vals: Record<string, string> } {
   const vals: Record<string, string> = {};
