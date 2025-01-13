@@ -1,8 +1,5 @@
-import { html } from 'lit';
-import { fixture, expect } from '@open-wc/testing';
-import { restore, fake, SinonSpy } from 'sinon';
-
-import { ListItem } from '@material/mwc-list/mwc-list-item.js';
+import { fixture, expect, html } from '@open-wc/testing';
+import { restore, SinonSpy, spy } from 'sinon';
 
 import TemplateGenerator from './oscd-template-generator.js';
 
@@ -20,7 +17,7 @@ describe('TemplateGenerator', () => {
   });
 
   it('displays no action button', () =>
-    expect(element.shadowRoot?.querySelector('mwc-fab')).to.not.exist);
+    expect(element.shadowRoot?.querySelector('md-fab')).to.not.exist);
 
   it('starts with LPHD selected', () => {
     expect(element).to.have.property('lNodeType', 'LPHD');
@@ -31,8 +28,8 @@ describe('TemplateGenerator', () => {
     let listener: SinonSpy;
     afterEach(restore);
     beforeEach(async () => {
-      listener = fake();
-      element.addEventListener('oscd-edit', listener);
+      listener = spy();
+      element.addEventListener('oscd-edit-v2', listener);
       element.doc = new DOMParser().parseFromString(
         sclDocString,
         'application/xml'
@@ -41,10 +38,10 @@ describe('TemplateGenerator', () => {
     });
 
     it('displays an action button', () =>
-      expect(element.shadowRoot?.querySelector('mwc-fab')).to.exist);
+      expect(element.shadowRoot?.querySelector('md-fab')).to.exist);
 
     it('adds Templates on action button click', () => {
-      element.shadowRoot?.querySelector('mwc-fab')?.click();
+      (element.shadowRoot?.querySelector('md-fab') as HTMLElement).click();
 
       /* expect five calls for
          - LPHD and its mandatory DOTypes
@@ -55,40 +52,42 @@ describe('TemplateGenerator', () => {
        */
       expect(listener).property('args').to.have.lengthOf(5);
       listener.args.forEach(args => {
-        expect(args[0])
-          .property('detail')
-          .to.have.property(
-            'parent',
-            element.doc?.querySelector('DataTypeTemplates')
-          );
-        expect(args[0]).property('detail').to.have.property('node');
+        const { edit } = args[0].detail;
+        expect(edit).to.have.property(
+          'parent',
+          element.doc?.querySelector('DataTypeTemplates')
+        );
+        expect(edit).to.have.property('node');
       });
     });
 
     it('adds missing DataTypeTemplates section on action button click', () => {
       element.doc?.querySelector('DataTypeTemplates')?.remove();
-      element.shadowRoot?.querySelector('mwc-fab')?.click();
+      (element.shadowRoot?.querySelector('md-fab') as HTMLElement).click();
 
       // expect one more call for the DTT section
       expect(listener).property('args').to.have.lengthOf(6);
       expect(listener.args[0][0])
         .property('detail')
+        .property('edit')
         .to.have.property('parent', element.doc?.documentElement);
       expect(listener.args[0][0])
         .property('detail')
+        .property('edit')
         .property('node')
         .to.have.property('tagName', 'DataTypeTemplates');
     });
 
     it('adds LNodeTypes, DOTypes, DATypes, and EnumTypes as requested', async () => {
       element.lNodeType = 'LLN0';
+      element.reset();
       await element.lNodeTypeUI?.updateComplete;
       await element.updateComplete;
 
       async function selectAll(column: number) {
-        const item = element.treeUI.shadowRoot?.querySelector<ListItem>(
-          `mwc-list:nth-of-type(${column + 1}) > mwc-list-item:first-of-type`
-        );
+        const item = element.treeUI.shadowRoot?.querySelector(
+          `md-list:nth-of-type(${column + 1}) > md-list-item:first-of-type`
+        ) as HTMLElement;
         item?.click();
         await element.treeUI.updateComplete;
         await element.updateComplete;
@@ -100,7 +99,7 @@ describe('TemplateGenerator', () => {
       await selectAll(4);
       await selectAll(5);
 
-      element.shadowRoot?.querySelector('mwc-fab')?.click();
+      (element.shadowRoot?.querySelector('md-fab') as HTMLElement).click();
 
       /* expect 30 calls for
         LNodeType LLN0
@@ -135,7 +134,7 @@ describe('TemplateGenerator', () => {
                   subVal
        */
       expect(listener).property('args').to.have.lengthOf(30);
-      const elms = listener.args.map(args => args[0].detail.node);
+      const elms = listener.args.map(args => args[0].detail.edit.node);
       expect(elms.filter(e => e.tagName === 'LNodeType')).to.have.lengthOf(1);
       expect(elms.filter(e => e.tagName === 'DOType')).to.have.lengthOf(13);
       expect(elms.filter(e => e.tagName === 'DAType')).to.have.lengthOf(8);

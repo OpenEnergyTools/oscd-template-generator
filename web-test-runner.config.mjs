@@ -1,4 +1,5 @@
 // import { playwrightLauncher } from '@web/test-runner-playwright';
+import { polyfill } from '@web/dev-server-polyfill';
 
 const filteredLogs = ['Running in dev mode', 'lit-html is in dev mode'];
 
@@ -20,6 +21,12 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
     }
     return true;
   },
+
+  plugins: [
+    polyfill({
+      scopedCustomElementRegistry: true,
+    }),
+  ]
 
   /** Compile JS for older browsers. Requires @web/dev-server-esbuild plugin */
   // esbuildTarget: 'auto',

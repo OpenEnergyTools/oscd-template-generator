@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-plusplus */
 /* eslint-disable no-loop-func */
@@ -6,15 +7,16 @@ import { LitElement, html, css } from 'lit';
 import { state, query } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 
-import { newEditEvent } from '@openscd/open-scd-core';
+import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 
-import type { Select } from '@material/mwc-select';
-import type { TreeGrid, TreeSelection } from '@openscd/oscd-tree-grid';
+import { newEditEvent } from '@openenergytools/open-scd-core';
 
-import '@material/mwc-fab';
-import '@material/mwc-select';
-import '@material/mwc-list/mwc-list-item.js';
-import '@openscd/oscd-tree-grid';
+import { TreeGrid, TreeSelection } from '@openenergytools/tree-grid';
+
+import { MdFab } from '@scopedelement/material-web/fab/MdFab.js';
+import { MdIcon } from '@scopedelement/material-web/icon/MdIcon.js';
+import { MdFilledSelect } from '@scopedelement/material-web/select/MdFilledSelect.js';
+import { MdSelectOption } from '@scopedelement/material-web/select/MdSelectOption.js';
 
 import { generateTemplates } from './generate-templates.js';
 
@@ -61,15 +63,24 @@ function getDTTReference(parent: Element, tag: Tag) {
   return nextSibling ?? null;
 }
 
-export default class TemplateGenerator extends LitElement {
+export default class TemplateGenerator extends ScopedElementsMixin(LitElement) {
+  static scopedElements = {
+    'tree-grid': TreeGrid,
+    'md-filled-select': MdFilledSelect,
+    'md-select-option': MdSelectOption,
+    'md-fab': MdFab,
+    'md-icon': MdIcon,
+  };
+
   @state()
   doc?: XMLDocument;
 
-  @query('oscd-tree-grid')
+  @query('tree-grid')
   treeUI!: TreeGrid;
 
   @state()
   get selection(): TreeSelection {
+    if (!this.treeUI) return {};
     return this.treeUI.selection;
   }
 
@@ -79,6 +90,7 @@ export default class TemplateGenerator extends LitElement {
 
   @state()
   get filter(): string {
+    if (!this.treeUI) return '';
     return this.treeUI.filter ?? '';
   }
 
@@ -86,8 +98,8 @@ export default class TemplateGenerator extends LitElement {
     this.treeUI.filter = filter;
   }
 
-  @query('mwc-select')
-  lNodeTypeUI?: Select;
+  @query('md-filled-select')
+  lNodeTypeUI?: MdFilledSelect;
 
   @state()
   get lNodeType(): string {
@@ -129,9 +141,13 @@ export default class TemplateGenerator extends LitElement {
 
     if (templates.ownerDocument !== this.doc) {
       this.dispatchEvent(
-        newEditEvent({ parent: this.doc.documentElement, node: templates })
+        newEditEvent({
+          parent: this.doc.documentElement,
+          node: templates,
+          reference: null,
+        })
       );
-      this.dispatchEvent(newCreateEvent(this.doc.documentElement, templates));
+      // this.dispatchEvent(newCreateEvent(this.doc.documentElement, templates));
     }
 
     // delete this.treeUI.selection['']; // workaround for UI bug
@@ -148,7 +164,7 @@ export default class TemplateGenerator extends LitElement {
         this.dispatchEvent(
           newEditEvent({ parent: templates, node: element, reference })
         );
-        this.dispatchEvent(newCreateEvent(templates, element, reference));
+        // this.dispatchEvent(newCreateEvent(templates, element, reference));
       }
     });
 
@@ -165,40 +181,62 @@ export default class TemplateGenerator extends LitElement {
   }
 
   render() {
-    return html`<div>
-        <mwc-select @selected=${() => this.reset()}>
+    return html`<div class="container">
+        <md-filled-select @input=${() => this.reset()}>
           ${Object.keys(tree).map(
             lNodeType =>
-              html`<mwc-list-item value=${lNodeType}
-                >${lNodeType}</mwc-list-item
+              html`<md-select-option value=${lNodeType}
+                >${lNodeType}</md-select-option
               >`
           )}
-        </mwc-select>
-        <oscd-tree-grid></oscd-tree-grid>
+        </md-filled-select>
+        <tree-grid></tree-grid>
       </div>
       ${this.doc
-        ? html`<mwc-fab
-            extended
-            icon="${this.addedLNode ? 'done' : 'add'}"
+        ? html`<md-fab
             label="${this.addedLNode || 'Add Type'}"
-            ?showIconAtEnd=${this.addedLNode}
             @click=${() => this.saveTemplates()}
-          ></mwc-fab>`
+          >
+            <md-icon slot="icon">${this.addedLNode ? 'done' : 'add'}</md-icon>
+          </md-fab>`
         : html``}`;
   }
 
   static styles = css`
-    div {
+    * {
+      --md-sys-color-primary: var(--oscd-primary);
+      --md-sys-color-secondary: var(--oscd-secondary);
+      --md-sys-typescale-body-large-font: var(--oscd-theme-text-font);
+      --md-outlined-text-field-input-text-color: var(--oscd-base01);
+
+      --md-sys-color-surface: var(--oscd-base3);
+      --md-sys-color-on-surface: var(--oscd-base00);
+      --md-sys-color-on-primary: var(--oscd-base2);
+      --md-sys-color-on-surface-variant: var(--oscd-base00);
+      --md-menu-container-color: var(--oscd-base3);
+      font-family: var(--oscd-theme-text-font);
+      --md-sys-color-surface-container-highest: var(--oscd-base2);
+      --md-list-item-activated-background: rgb(
+        from var(--oscd-primary) r g b / 0.38
+      );
+      --md-menu-item-selected-container-color: rgb(
+        from var(--oscd-primary) r g b / 0.38
+      );
+      --md-list-container-color: var(--oscd-base2);
+      --md-fab-container-color: var(--oscd-secondary);
+    }
+
+    .container {
       margin: 12px;
     }
 
-    mwc-fab {
+    md-fab {
       position: fixed;
       bottom: 32px;
       right: 32px;
     }
 
-    mwc-select {
+    md-filled-select {
       position: absolute;
       left: 300px;
     }
