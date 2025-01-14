@@ -15,13 +15,14 @@
     "start:build": "web-dev-server --root-dir dist --app-index index.html --open",
     "analyze": "cem analyze --litelement",
     "start": "npm run compile && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
-    "deploy": "npm run build && gh-pages --dist 'dist'"
+    "deploy": "npm run build && gh-pages --dist 'dist' --branch 'deploy'"
   },
   "dependencies": {
     "@openenergytools/tree-grid": "1.0.1",
     "@scopedelement/material-web": "^3.6.2",
     "@openenergytools/open-scd-core": "0.0.5",
     "@open-wc/scoped-elements": "^3.0.5",
+    "@openenergytools/scl-lib":"1.2.0",
     "lit": "^3.0.0"
   },
   "devDependencies": {
