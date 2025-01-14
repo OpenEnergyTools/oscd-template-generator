@@ -50,9 +50,9 @@ describe('TemplateGenerator', () => {
            - PhyNam
            - Proxy
        */
-      expect(listener).property('args').to.have.lengthOf(5);
-      listener.args.forEach(args => {
-        const { edit } = args[0].detail;
+      const edits = listener.args[0][0].detail.edit;
+      expect(edits).to.have.lengthOf(5);
+      edits.forEach((edit: any) => {
         expect(edit).to.have.property(
           'parent',
           element.doc?.querySelector('DataTypeTemplates')
@@ -66,14 +66,10 @@ describe('TemplateGenerator', () => {
       (element.shadowRoot?.querySelector('md-fab') as HTMLElement).click();
 
       // expect one more call for the DTT section
-      expect(listener).property('args').to.have.lengthOf(6);
-      expect(listener.args[0][0])
-        .property('detail')
-        .property('edit')
-        .to.have.property('parent', element.doc?.documentElement);
-      expect(listener.args[0][0])
-        .property('detail')
-        .property('edit')
+      const edits = listener.args[0][0].detail.edit;
+      expect(edits).to.have.lengthOf(6);
+      expect(edits[0]).to.have.property('parent', element.doc?.documentElement);
+      expect(edits[0])
         .property('node')
         .to.have.property('tagName', 'DataTypeTemplates');
     });
@@ -133,12 +129,21 @@ describe('TemplateGenerator', () => {
                   stVal
                   subVal
        */
-      expect(listener).property('args').to.have.lengthOf(30);
-      const elms = listener.args.map(args => args[0].detail.edit.node);
-      expect(elms.filter(e => e.tagName === 'LNodeType')).to.have.lengthOf(1);
-      expect(elms.filter(e => e.tagName === 'DOType')).to.have.lengthOf(13);
-      expect(elms.filter(e => e.tagName === 'DAType')).to.have.lengthOf(8);
-      expect(elms.filter(e => e.tagName === 'EnumType')).to.have.lengthOf(8);
+      const edits = listener.args[0][0].detail.edit;
+      expect(edits).to.have.lengthOf(30);
+      const elms = edits.map((edit: { node: any }) => edit.node);
+      expect(
+        elms.filter((e: { tagName: string }) => e.tagName === 'LNodeType')
+      ).to.have.lengthOf(1);
+      expect(
+        elms.filter((e: { tagName: string }) => e.tagName === 'DOType')
+      ).to.have.lengthOf(13);
+      expect(
+        elms.filter((e: { tagName: string }) => e.tagName === 'DAType')
+      ).to.have.lengthOf(8);
+      expect(
+        elms.filter((e: { tagName: string }) => e.tagName === 'EnumType')
+      ).to.have.lengthOf(8);
     }).timeout(10000); // selecting 550 paths for a full LLN0 is rather slow.
   });
 });
