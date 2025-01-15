@@ -36,10 +36,10 @@ describe('TemplateGenerator', () => {
                  - PhyNam
                  - Proxy
              */
-            expect(listener).property('args').to.have.lengthOf(5);
-            listener.args.forEach(args => {
+            const edits = listener.args[0][0].detail.edit;
+            expect(edits).to.have.lengthOf(5);
+            edits.forEach((edit) => {
                 var _a;
-                const { edit } = args[0].detail;
                 expect(edit).to.have.property('parent', (_a = element.doc) === null || _a === void 0 ? void 0 : _a.querySelector('DataTypeTemplates'));
                 expect(edit).to.have.property('node');
             });
@@ -49,14 +49,10 @@ describe('TemplateGenerator', () => {
             (_b = (_a = element.doc) === null || _a === void 0 ? void 0 : _a.querySelector('DataTypeTemplates')) === null || _b === void 0 ? void 0 : _b.remove();
             ((_c = element.shadowRoot) === null || _c === void 0 ? void 0 : _c.querySelector('md-fab')).click();
             // expect one more call for the DTT section
-            expect(listener).property('args').to.have.lengthOf(6);
-            expect(listener.args[0][0])
-                .property('detail')
-                .property('edit')
-                .to.have.property('parent', (_d = element.doc) === null || _d === void 0 ? void 0 : _d.documentElement);
-            expect(listener.args[0][0])
-                .property('detail')
-                .property('edit')
+            const edits = listener.args[0][0].detail.edit;
+            expect(edits).to.have.lengthOf(6);
+            expect(edits[0]).to.have.property('parent', (_d = element.doc) === null || _d === void 0 ? void 0 : _d.documentElement);
+            expect(edits[0])
                 .property('node')
                 .to.have.property('tagName', 'DataTypeTemplates');
         });
@@ -111,12 +107,13 @@ describe('TemplateGenerator', () => {
                         stVal
                         subVal
              */
-            expect(listener).property('args').to.have.lengthOf(30);
-            const elms = listener.args.map(args => args[0].detail.edit.node);
-            expect(elms.filter(e => e.tagName === 'LNodeType')).to.have.lengthOf(1);
-            expect(elms.filter(e => e.tagName === 'DOType')).to.have.lengthOf(13);
-            expect(elms.filter(e => e.tagName === 'DAType')).to.have.lengthOf(8);
-            expect(elms.filter(e => e.tagName === 'EnumType')).to.have.lengthOf(8);
+            const edits = listener.args[0][0].detail.edit;
+            expect(edits).to.have.lengthOf(30);
+            const elms = edits.map((edit) => edit.node);
+            expect(elms.filter((e) => e.tagName === 'LNodeType')).to.have.lengthOf(1);
+            expect(elms.filter((e) => e.tagName === 'DOType')).to.have.lengthOf(13);
+            expect(elms.filter((e) => e.tagName === 'DAType')).to.have.lengthOf(8);
+            expect(elms.filter((e) => e.tagName === 'EnumType')).to.have.lengthOf(8);
         }).timeout(10000); // selecting 550 paths for a full LLN0 is rather slow.
     });
 });
